@@ -1,0 +1,17 @@
+FROM golang:1.12-alpine3.9 AS build-env
+RUN apk add --no-cache --update gcc
+RUN apk add --no-cache --update libc-dev
+RUN apk add git
+RUN git config --global http.sslVerify false
+ENV GO111MODULE=on
+ADD . /go/src
+WORKDIR /go/src
+RUN go get -v
+RUN go build -o shut
+
+FROM alpine:3.9 as builder
+WORKDIR /go/src
+COPY --from=build-env /go/src/shut /go/src
+RUN chmod u+x /go/src/shut
+RUN ls -al
+ENTRYPOINT ["/go/src/shut"]
